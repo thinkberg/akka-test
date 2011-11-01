@@ -44,14 +44,16 @@ object AkkaLeak extends App with Logging {
 
   private def backlogs = actors.map(_.mailboxSize).filter(_ > 0)
 
-  for (i <- 1 until 100000) {
-    val a = new Something(new Array[String](1000))
-    val b = new SomethingElse(new Array[String](1000), i)
+  for (i <- 1 until 1000000) {
+    val a = new Something(Array("a"+i))
+    val b = new SomethingElse(Array("b"+i), i)
     router ! ((a, b))
     if (i % 1000 == 0) {
-      val backlogs = actors.map(_.mailboxSize).filter(_ > 0)
-      if (backlogs.length > 0)
-        info("actor backlog: %d actors (%d waiting messages)".format(backlogs.length, backlogs.foldLeft(0)(_ + _)))
+      val logs = backlogs
+      if (logs.length > 0) {
+        if(logs.foldLeft(0)(_ + _) > 9000) Thread.sleep(1000)
+        info("actor backlog: %d actors (%d waiting messages)".format(logs.length, logs.foldLeft(0)(_ + _)))
+      }
     }
   }
 
